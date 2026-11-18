@@ -36,6 +36,44 @@ internal static class Program
                 [{"tag_name":"v99.0.0","draft":false,"assets":[{"name":"Codex-Account-Switcher-macos-arm64.dmg"}]}]
                 """);
             Assert(NativeSettings.LatestWindowsVersion(macOnly.RootElement) == null, "A release without a Windows EXE must never prompt a Windows update.");
+            using var fullRelease = System.Text.Json.JsonDocument.Parse("""
+                [{
+                  "tag_name":"v0.1.99",
+                  "draft":false,
+                  "html_url":"https://github.com/ajjs1ajjs/codex-account-switcher/releases/tag/v0.1.99",
+                  "assets":[
+                    {"name":"Codex-Account-Switcher-windows-x64.exe","browser_download_url":"https://github.com/ajjs1ajjs/codex-account-switcher/releases/download/v0.1.99/Codex-Account-Switcher-windows-x64.exe","digest":"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+                    {"name":"Codex-Account-Switcher-windows-x64.exe.sha256","browser_download_url":"https://github.com/ajjs1ajjs/codex-account-switcher/releases/download/v0.1.99/Codex-Account-Switcher-windows-x64.exe.sha256"}
+                  ]
+                }]
+                """);
+            var releaseInfo = NativeSettings.LatestWindowsRelease(fullRelease.RootElement)!;
+            Assert(releaseInfo.Version == new Version(0, 1, 99)
+                && releaseInfo.DownloadUri?.ToString().EndsWith("Codex-Account-Switcher-windows-x64.exe") == true
+                && releaseInfo.ChecksumUri?.ToString().EndsWith(".exe.sha256") == true
+                && releaseInfo.DigestSha256 == "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                "Release parsing must retain HTTPS asset, checksum URL, and SHA-256 digest.");
+            var tempUpdateDir = Path.Combine(Path.GetTempPath(), "codex-update-check-" + Guid.NewGuid());
+            Directory.CreateDirectory(tempUpdateDir);
+            try {
+                var current = Path.Combine(tempUpdateDir, "app.exe");
+                var staged = Path.Combine(tempUpdateDir, "app.exe.new");
+                File.WriteAllText(current, "old-bin");
+                File.WriteAllText(staged, "new-bin");
+                var newHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(staged))).ToLowerInvariant();
+                Assert(NativeSettings.VerifyFileSha256(staged, newHash) && !NativeSettings.VerifyFileSha256(staged, new string('0', 64)),
+                    "SHA-256 verification must pass exact hash and reject mismatches.");
+                NativeSettings.ReplaceExecutable(current, staged);
+                Assert(File.ReadAllText(current) == "new-bin" && File.ReadAllText(current + ".old") == "old-bin" && !File.Exists(staged),
+                    "ReplaceExecutable must swap new binary into place and preserve .old backup.");
+                NativeSettings.RestoreExecutable(current);
+                Assert(File.ReadAllText(current) == "old-bin", "RestoreExecutable must roll back to .old binary.");
+                File.WriteAllText(current + ".old", "leftover");
+                NativeSettings.CleanupReplacedExecutable(current);
+                Assert(!File.Exists(current + ".old"), "CleanupReplacedExecutable must remove leftover .old file.");
+            } finally {
+                if (Directory.Exists(tempUpdateDir)) Directory.Delete(tempUpdateDir, true);
+            }
             Directory.CreateDirectory(output);
             var app = new App(false); app.InitializeComponent();
             var client = new FixtureClient();

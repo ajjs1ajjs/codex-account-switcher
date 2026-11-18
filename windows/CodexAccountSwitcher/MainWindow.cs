@@ -24,6 +24,18 @@ public sealed class MainWindow : Window
     public string CurrentPage => page;
     private AccountSnapshot State => client.State;
     private string T(string key) => State.Text(key);
+    private bool IsSimplifiedChinese() => State.Settings.Language == "simplifiedChinese"
+        || (State.Settings.Language == "system" && CultureInfo.CurrentUICulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase));
+    private string TOr(string key, string en, string zh)
+    {
+        var value = T(key);
+        return value == key ? (IsSimplifiedChinese() ? zh : en) : value;
+    }
+    private async Task InstallOrOpenUpdateAsync()
+    {
+        if (native.CanInstallInApp) { await native.InstallUpdateAsync(); return; }
+        native.OpenUpdate();
+    }
     private Brush B(string key) => (Brush)FindResource(key);
 
     public MainWindow(IAccountClient client, NativeSettings? native = null)
@@ -129,6 +141,19 @@ public sealed class MainWindow : Window
             var warning = new StackPanel { Margin = new Thickness(12, 8, 12, 4) };
             warning.Children.Add(Text(T("active_unconfirmed"), 11, muted: true));
             warning.Children.Add(Button(T("manage"), () => Navigate("manage"), left: true)); body.Children.Add(warning);
+        }
+        if (!manage && (native.AvailableVersion != null || native.IsUpdating)) {
+            var ver = native.AvailableVersion?.ToString(3) ?? native.Version;
+            var labelText = native.IsUpdating
+                ? TOr("update_downloading", "Downloading & verifying v%@…", "正在下载并校验 v%@…").Replace("%@", ver)
+                : TOr("update_available", "Version %@ is available", "新版本 %@ 可用").Replace("%@", ver);
+            var updateButton = Button(
+                TOr("update_action", "Update", "立即更新"),
+                async () => await InstallOrOpenUpdateAsync());
+            updateButton.IsEnabled = !IsBusy && !native.IsUpdating && !native.IsChecking;
+            var banner = Pair(Text(labelText, 12, bold: true), updateButton);
+            banner.Margin = new Thickness(16, 0, 16, 10);
+            body.Children.Add(banner);
         }
         var list = new StackPanel();
         foreach (var row in State.Accounts) {
@@ -242,8 +267,33 @@ public sealed class MainWindow : Window
         var languageRow = Pair(Text(T("language")), language); languageRow.Height = 48; settings.Children.Add(languageRow);
         var heading = Text(T("settings_updates"), 14, bold: true); heading.Margin = new Thickness(0, 20, 0, 0); settings.Children.Add(heading);
         Toggle(T("automatically_check_updates"), native.AutomaticallyCheckUpdates, value => native.AutomaticallyCheckUpdates = value);
-        var hint = Text(T(native.UpdateError ?? "update_check_hint"), 10.5, muted: true); hint.Margin = new Thickness(0, 0, 0, 12); hint.TextWrapping = TextWrapping.Wrap; settings.Children.Add(hint); settings.Children.Add(Rule());
-        var check = Button(T(native.UpdatePage == null ? "check_for_updates" : "update_action"), async () => { if (native.UpdatePage != null) native.OpenUpdate(); else await native.CheckUpdatesAsync(); }); check.IsEnabled = !native.IsChecking;
-        var version = Pair(Text(T("current_version").Replace("%@", native.Version), 12), check); version.Margin = new Thickness(0, 12, 0, 0); settings.Children.Add(version); body.Children.Add(settings);
+        string hintText;
+        if (native.IsUpdating) {
+            var ver = native.AvailableVersion?.ToString(3) ?? native.Version;
+            hintText = TOr("update_downloading", "Downloading & verifying v%@…", "正在下载并校验 v%@…").Replace("%@", ver);
+        } else if (native.IsChecking) {
+            hintText = TOr("update_checking", "Checking for updates…", "正在检查更新…");
+        } else if (native.UpdateError != null) {
+            hintText = TOr(native.UpdateError, "Update check or download failed. You can open the release page.", "检查或下载更新失败，可打开发布页手动下载。");
+        } else if (native.AvailableVersion != null) {
+            hintText = TOr("update_available", "Version %@ is available", "新版本 %@ 可用").Replace("%@", native.AvailableVersion.ToString(3));
+        } else if (native.HasChecked) {
+            hintText = TOr("update_up_to_date", "You are on the latest version.", "当前已是最新版本。");
+        } else {
+            hintText = T("update_check_hint");
+        }
+        var hint = Text(hintText, 10.5, muted: true); hint.Margin = new Thickness(0, 0, 0, 12); hint.TextWrapping = TextWrapping.Wrap; settings.Children.Add(hint); settings.Children.Add(Rule());
+        var buttonLabel = native.AvailableVersion != null
+            ? TOr("update_action", "Update", "立即更新")
+            : T("check_for_updates");
+        var check = Button(buttonLabel, async () => { if (native.UpdatePage != null) await InstallOrOpenUpdateAsync(); else await native.CheckUpdatesAsync(); });
+        check.IsEnabled = !native.IsChecking && !native.IsUpdating;
+        var version = Pair(Text(T("current_version").Replace("%@", native.Version), 12), check); version.Margin = new Thickness(0, 12, 0, 0); settings.Children.Add(version);
+        if (native.UpdateError != null && native.UpdatePage != null) {
+            var fallback = Button(TOr("open_release_page", "Open release page", "打开发布页"), () => native.OpenUpdate(), left: true);
+            fallback.Margin = new Thickness(0, 8, 0, 0);
+            settings.Children.Add(fallback);
+        }
+        body.Children.Add(settings);
     }
 }

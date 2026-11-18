@@ -12,7 +12,7 @@ The compact window follows the existing macOS account flow:
 - Manage Accounts uses the same email titles and contains browser sign-in, register current login and removal of inactive accounts. The browser sign-in hint sits to the right of Add Account on one line.
 - Settings take effect immediately: launch at login, tray tooltip percentage, optional 5-hour usage and language.
 - Usage refreshes at startup, when opening the window, and every five minutes. Failed refreshes retain the last good value.
-- Updates are checked hourly when enabled. A new Windows version opens its release download page; the running EXE is not replaced automatically.
+- Updates are checked hourly when enabled. Clicking Update downloads the Windows release EXE directly in-app, verifies its SHA-256 digest, swaps the executable cleanly, and relaunches; manual release page fallback remains available if installation fails.
 
 The app opens a centered Windows window with a standard title bar, minimize and close controls, and a taskbar entry. It stays visible when focus moves to another app or the browser. When tray percentage is enabled and usage is available, the tray icon itself shows the selected usage window's remaining percentage as a number; the hover tooltip includes the account name and `%` value. Otherwise the tray uses the original transparent logo. The icon follows the taskbar theme independently of the app theme. It is an additional entry point; reopening the EXE brings the existing window forward. The title-bar Close button hides the window while the tray icon and background work remain active. Left-click the tray icon to reopen the window; right-click it and choose Quit to exit. Active account operations must finish before quitting.
 

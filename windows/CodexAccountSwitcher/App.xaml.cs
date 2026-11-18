@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -42,6 +43,7 @@ public partial class App : Application
         base.OnStartup(e);
         if (!startRuntime) return;
         if (e.Args.Contains("--self-test")) { await SelfTestAsync(); return; }
+        WaitForReplacedProcess(e.Args);
         try {
             var dataPath = Environment.GetEnvironmentVariable("CODEX_SWITCHER_DATA_HOME")
                 ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Codex Account Switcher");
@@ -49,9 +51,12 @@ public partial class App : Application
             instance = new Mutex(true, @"Local\CodexAccountSwitcher-" + key, out ownsMutex);
             activateWindow = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\CodexAccountSwitcher-Activate-" + key);
             if (!ownsMutex) { activateWindow.Set(); Shutdown(); return; }
+            _ = Task.Run(() => NativeSettings.CleanupReplacedExecutable());
             ApplyTheme();
             client = new CoreClient(HostRuntime.Resolve(Assembly.GetExecutingAssembly()), dataPath);
-            var native = new NativeSettings();
+            var native = new NativeSettings {
+                ShutdownForUpdate = () => _ = Dispatcher.BeginInvoke(new Action(() => _ = QuitAsync(force: true)))
+            };
             window = new MainWindow(client, native); MainWindow = window;
             activationListener = ThreadPool.RegisterWaitForSingleObject(activateWindow, (_, _) =>
                 Dispatcher.BeginInvoke(new Action(() => { if (!exiting) { ApplyTheme(); window.OpenWindow(); } })),
@@ -141,13 +146,21 @@ public partial class App : Application
             ("Accent", dark ? "#60CDFF" : "#0067C0"), ("Selected", dark ? "#293F50" : "#E2EEFA"), ("Hover", dark ? "#15FFFFFF" : "#0C000000") })
             Resources[pair.Item1] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(pair.Item2));
     }
-    private async Task QuitAsync() {
-        if (exiting || window?.IsBusy == true) return;
+    private async Task QuitAsync(bool force = false) {
+        if (exiting || (!force && window?.IsBusy == true)) return;
         exiting = true; updates?.Stop();
         activationListener?.Unregister(null);
         if (client != null) { client.Changed -= RefreshTray; await client.DisposeAsync(); }
         window?.CloseForExit();
         Shutdown();
+    }
+    private static void WaitForReplacedProcess(string[] args) {
+        var index = Array.IndexOf(args, "--wait-pid");
+        if (index < 0 || index + 1 >= args.Length || !int.TryParse(args[index + 1], out var pid) || pid <= 0) return;
+        try {
+            using var previous = Process.GetProcessById(pid);
+            previous.WaitForExit(10000);
+        } catch { }
     }
     private async Task SelfTestAsync() {
         var root = Path.Combine(Path.GetTempPath(), "switcher-package-check-" + Guid.NewGuid());
