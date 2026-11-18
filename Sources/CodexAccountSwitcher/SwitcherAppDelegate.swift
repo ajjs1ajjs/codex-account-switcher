@@ -16,7 +16,6 @@ final class SwitcherAppDelegate: NSObject, NSApplicationDelegate {
             updater.accountOperationInProgress = model.isMutating || model.isAddingAccount
         }
         updater.start()
-        tiboForecast.start()
         wakeObservation = NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
             .sink { [weak self] _ in
                 Task { @MainActor in self?.model.refreshWeeklyUsage() }

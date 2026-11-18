@@ -56,12 +56,12 @@ public partial class App : Application
             activationListener = ThreadPool.RegisterWaitForSingleObject(activateWindow, (_, _) =>
                 Dispatcher.BeginInvoke(new Action(() => { if (!exiting) { ApplyTheme(); window.OpenWindow(); } })),
                 null, Timeout.Infinite, false);
-            tray = new Forms.NotifyIcon { Text = "Codex Account Switcher" };
+            tray = new Forms.NotifyIcon { Text = "Codex Switch" };
             RefreshTrayIcon();
             tray.Visible = true;
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             trayMenu = new Forms.ContextMenuStrip();
-            var openItem = new Forms.ToolStripMenuItem("Codex Account Switcher");
+            var openItem = new Forms.ToolStripMenuItem("Codex Switch");
             openItem.Click += (_, _) => { ApplyTheme(); window.OpenWindow(); };
             var quitItem = new Forms.ToolStripMenuItem();
             quitItem.Click += (_, _) => _ = QuitAsync();
@@ -79,7 +79,7 @@ public partial class App : Application
             updates.Start();
             if (native.AutomaticallyCheckUpdates) _ = native.CheckUpdatesAsync();
         } catch (Exception ex) {
-            MessageBox.Show(ex.Message, "Codex Account Switcher", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(ex.Message, "Codex Switch", MessageBoxButton.OK, MessageBoxImage.Error);
             await QuitAsync();
         }
     }
@@ -90,7 +90,7 @@ public partial class App : Application
         RefreshTrayIcon();
         var active = client.State.Accounts.FirstOrDefault(row => row.Profile.Id == client.State.ActiveAccountID);
         var percent = ActiveTrayPercent();
-        var label = active == null ? "Codex Account Switcher" : active.Profile.DisplayName + (percent != null ? " · " + percent + "%" : "");
+        var label = active == null ? "Codex Switch" : active.Profile.DisplayName + (percent != null ? " · " + percent + "%" : "");
         tray.Text = label.Length > 63 ? label[..63] : label;
     }
     private int? ActiveTrayPercent()

@@ -5,15 +5,15 @@
   </picture>
 </p>
 
-<h1 align="center">Codex Account Switcher</h1>
+<h1 align="center">Codex Switch</h1>
 
 <p align="center">
   <strong>Switch Codex accounts on macOS and Windows.</strong><br>
-  Add accounts once, then choose when you need them. No Terminal commands or config-file editing.
+  Modified fork of <a href="https://github.com/liuzhao1225/codex-account-switcher">liuzhao1225/codex-account-switcher</a> (MIT) with a minimal UI, custom icons, and updates pointed to this repository.
 </p>
 
 <p align="center">
-  <a href="https://github.com/liuzhao1225/codex-account-switcher/releases"><img alt="Release" src="https://img.shields.io/github/v/release/liuzhao1225/codex-account-switcher?sort=semver&label=release&color=2563eb"></a>
+  <a href="https://github.com/ajjs1ajjs/codex-account-switcher/releases"><img alt="Release" src="https://img.shields.io/github/v/release/ajjs1ajjs/codex-account-switcher?sort=semver&label=release&color=10a37f"></a>
   <img alt="macOS 14 or later" src="https://img.shields.io/badge/macOS-14%2B-171513?logo=apple&logoColor=white">
   <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-arm64-171513">
   <img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%2F11%20x64-171513">
@@ -21,10 +21,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/liuzhao1225/codex-account-switcher/releases/latest/download/Codex-Account-Switcher-macos-arm64.dmg"><b>Download free for Mac</b></a> ·
-  <a href="https://github.com/liuzhao1225/codex-account-switcher/releases/latest/download/Codex-Account-Switcher-windows-x64.exe"><b>Download free for Windows</b></a> ·
-  <a href="https://liuzhao1225.github.io/codex-account-switcher/"><b>Website</b></a> ·
-  <a href="https://github.com/liuzhao1225/codex-account-switcher/discussions"><b>Discussions</b></a>
+  <a href="https://github.com/ajjs1ajjs/codex-account-switcher/releases/latest/download/Codex-Account-Switcher-macos-arm64.dmg"><b>Download for Mac</b></a> ·
+  <a href="https://github.com/ajjs1ajjs/codex-account-switcher/releases/latest/download/Codex-Account-Switcher-windows-x64.exe"><b>Download for Windows</b></a> ·
+  <a href="https://github.com/ajjs1ajjs/codex-account-switcher/releases"><b>Releases</b></a>
 </p>
 
 <p align="center">

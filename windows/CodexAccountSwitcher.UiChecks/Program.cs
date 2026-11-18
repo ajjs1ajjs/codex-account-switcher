@@ -80,11 +80,8 @@ internal static class Program
                 text.TextWrapping == TextWrapping.NoWrap && text.TextTrimming == TextTrimming.CharacterEllipsis && Equals(text.ToolTip, text.Text)),
                 "Account emails must stay on one line and expose the full address in a tooltip.");
             Assert(!All<TextBlock>(window).Any(text => text.Text == "当前"), "Home uses selection color, not active labels.");
-            Assert(All<TextBlock>(window).Any(text => text.Text == "重置次数: 2"), "Home shows the reported reset count beneath usage.");
-            Assert(All<TextBlock>(window).Any(text => text.Text == "重置次数: 未知"), "Missing reset count must not be shown as zero.");
-            Assert(All<TextBlock>(window).Any(text => text.Text == "有效期：2099-10-17" && text.ToolTip is string),
-                "Home shows the subscription date without a parenthetical label and exposes its check time on hover.");
-            Assert(All<TextBlock>(window).Any(text => text.Text == "有效期：未知"), "Missing subscription date stays unknown.");
+            Assert(!All<TextBlock>(window).Any(text => text.Text.Contains("重置次数")), "Minimal home omits experimental reset credits.");
+            Assert(!All<TextBlock>(window).Any(text => text.Text.Contains("有效期")), "Minimal home omits subscription line.");
             var target = All<Button>(window).Single(button => button.Content is Grid && System.Windows.Automation.AutomationProperties.GetName(button) == "studio@example.test");
             target.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Assert(window.CurrentPage == "switch", "Selecting a row must open an in-place confirmation.");
@@ -107,18 +104,10 @@ internal static class Program
             var fiveHour = All<CheckBox>(window).Single(toggle => System.Windows.Automation.AutomationProperties.GetName(toggle) == "显示 5 小时用量");
             fiveHour.IsChecked = true; fiveHour.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));
             Assert(client.Commands.Single() == "fiveHour:True", "Settings must save immediately.");
-            var experiment = All<CheckBox>(window).Single(toggle => System.Windows.Automation.AutomationProperties.GetName(toggle) == client.State.Text("auto_reset"));
-            Assert(experiment.IsChecked == false, "Auto-reset must default to off.");
-            experiment.IsChecked = true; experiment.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));
-            Assert(client.Commands.SequenceEqual(new[] { "fiveHour:True", "autoReset:True" }),
-                "The auto-reset toggle must send the setting to the shared host.");
-            Assert(All<TextBlock>(window).Any(text => text.Text == client.State.Text("auto_reset_hint")),
-                "Settings must disclose real reset consumption and runtime requirements.");
+            Assert(!All<CheckBox>(window).Any(toggle => System.Windows.Automation.AutomationProperties.GetName(toggle) == client.State.Text("auto_reset")),
+                "Minimal settings omit experimental auto-reset.");
             Assert(!All<TextBlock>(window).Any(text => text.Text is "保存" or "Save"), "Settings must not have a Save flow.");
-            client.State = client.State with { Settings = client.State.Settings with { ShowsFiveHourUsage = true, AutoResetEnabled = true } };
-            window.Navigate("settings"); Render(window, Path.Combine(output, "settings-auto-reset-enabled-zh.png"));
-            Assert(All<CheckBox>(window).Single(toggle => System.Windows.Automation.AutomationProperties.GetName(toggle) == client.State.Text("auto_reset")).IsChecked == true,
-                "The auto-reset toggle must reflect the persisted setting.");
+            client.State = client.State with { Settings = client.State.Settings with { ShowsFiveHourUsage = true } };
             window.Navigate("accounts"); Render(window, Path.Combine(output, "accounts-five-hour-zh.png"));
             Assert(All<TextBlock>(window).Count(text => text.Text == "5 小时") == 2, "Five-hour view must be per account.");
             var closed = false; window.Closed += (_, _) => closed = true;

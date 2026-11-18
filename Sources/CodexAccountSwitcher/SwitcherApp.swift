@@ -48,9 +48,9 @@ private struct MenuBarStatusLabel: View {
         guard model.settings.showsMenuBarPercentage,
               let remainingPercent = model.activeRemainingPercent
         else {
-            return "Codex Account Switcher" + updateStatus
+            return "Codex Switch" + updateStatus
         }
-        return "Codex Account Switcher, \(remainingPercent)%" + updateStatus
+        return "Codex Switch, \(remainingPercent)%" + updateStatus
     }
 }
 

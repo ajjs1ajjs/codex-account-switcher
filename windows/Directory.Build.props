@@ -4,9 +4,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>0.1.27</Version>
-    <Authors>Zhao Liu</Authors>
-    <Copyright>Copyright (c) 2026 liuzhao1225</Copyright>
-    <RepositoryUrl>https://github.com/liuzhao1225/codex-account-switcher</RepositoryUrl>
+    <Version>0.1.28</Version>
+    <Authors>ajjs1ajjs</Authors>
+    <Copyright>Modified fork (Codex Switch); original Copyright (c) 2026 liuzhao1225</Copyright>
+    <RepositoryUrl>https://github.com/ajjs1ajjs/codex-account-switcher</RepositoryUrl>
   </PropertyGroup>
 </Project>

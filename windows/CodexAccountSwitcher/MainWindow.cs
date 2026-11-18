@@ -30,7 +30,7 @@ public sealed class MainWindow : Window
     {
         this.client = client; this.native = native ?? new NativeSettings();
         Icon = System.Windows.Media.Imaging.BitmapFrame.Create(App.IconUri);
-        Title = "Codex Account Switcher"; Width = 420; SizeToContent = SizeToContent.Height;
+        Title = "Codex Switch"; Width = 420; SizeToContent = SizeToContent.Height;
         WindowStyle = WindowStyle.SingleBorderWindow; ResizeMode = ResizeMode.CanMinimize;
         Background = B("Surface"); ShowInTaskbar = true;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -152,22 +152,6 @@ public sealed class MainWindow : Window
                         State.Settings.ShowsFiveHourUsage ? Reset(usage.ResetsAt) : null));
                     details.ToolTip = row.UsageError;
                 } else { var missing = Text(row.UsageStatus == "idle" ? T("usage") + " —" : T("usage_unavailable"), 10.5, muted: true); missing.ToolTip = row.UsageError; details.Children.Add(missing); }
-                var accountInfo = new Grid();
-                accountInfo.ColumnDefinitions.Add(new ColumnDefinition());
-                accountInfo.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                if (row.Usage is { } infoUsage) {
-                    var resetCredits = Text(T("reset_credits") + ": " + (infoUsage.ResetCreditsRemaining?.ToString(CultureInfo.CurrentCulture) ?? T("unknown")), 10.5, muted: true);
-                    resetCredits.Margin = new Thickness(8, 0, 0, 0);
-                    Grid.SetColumn(resetCredits, 1); accountInfo.Children.Add(resetCredits);
-                }
-                TextBlock subscriptionLine;
-                if (row.Subscription is { } subscription) {
-                    var date = subscription.ActiveUntil.ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-                    subscriptionLine = Text(T("subscription_until").Replace("%@", date), 10.5, muted: true);
-                    subscriptionLine.ToolTip = subscriptionLine.Text + "\n" + T("subscription_detail").Replace("%@", subscription.LastChecked.ToLocalTime().ToString("yyyy MMM d HH:mm", CultureInfo.CurrentCulture));
-                } else subscriptionLine = Text(T("subscription_unknown"), 10.5, muted: true);
-                accountInfo.Children.Add(subscriptionLine);
-                details.Children.Add(accountInfo);
             }
             var grid = new Grid { MinHeight = manage ? 32 : 50 };
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) }); grid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -256,15 +240,6 @@ public sealed class MainWindow : Window
         var language = new ComboBox { Width = 160, VerticalAlignment = VerticalAlignment.Center, ItemsSource = new[] { T("system_default"), T("english"), T("simplified_chinese") }, SelectedIndex = Array.IndexOf(languages, State.Settings.Language) };
         language.SelectionChanged += (_, _) => { if (language.SelectedIndex >= 0) _ = Run("language", language: languages[language.SelectedIndex]); };
         var languageRow = Pair(Text(T("language")), language); languageRow.Height = 48; settings.Children.Add(languageRow);
-        var experimentHeading = Text(T("settings_automation"), 14, bold: true); experimentHeading.Margin = new Thickness(0, 20, 0, 0); settings.Children.Add(experimentHeading);
-        Toggle(T("auto_reset"), State.Settings.AutoResetEnabled, value => _ = Run("autoReset", value: value));
-        var experimentHint = Text(T("auto_reset_hint"), 10.5, muted: true); experimentHint.TextWrapping = TextWrapping.Wrap; settings.Children.Add(experimentHint);
-        settings.Children.Add(Button(T("open_reset_log"), () => {
-            try {
-                var directory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Codex Account Switcher");
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(directory) { UseShellExecute = true });
-            } catch (Exception ex) { localError = ex.Message; Render(); }
-        }));
         var heading = Text(T("settings_updates"), 14, bold: true); heading.Margin = new Thickness(0, 20, 0, 0); settings.Children.Add(heading);
         Toggle(T("automatically_check_updates"), native.AutomaticallyCheckUpdates, value => native.AutomaticallyCheckUpdates = value);
         var hint = Text(T(native.UpdateError ?? "update_check_hint"), 10.5, muted: true); hint.Margin = new Thickness(0, 0, 0, 12); hint.TextWrapping = TextWrapping.Wrap; settings.Children.Add(hint); settings.Children.Add(Rule());

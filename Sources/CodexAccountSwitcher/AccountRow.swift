@@ -45,19 +45,6 @@ struct AccountRow: View {
                 }
 
                 usageContent
-                HStack(spacing: 8) {
-                    Text(subscriptionText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.9)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .help(subscriptionDetail)
-                    if let usage = usageState.displayedUsage {
-                        Text(resetCreditsText(for: usage))
-                            .fixedSize(horizontal: true, vertical: false)
-                    }
-                }
-                    .font(.system(size: 10.5).monospacedDigit())
-                    .foregroundStyle(.secondary)
             }
             .fixedSize(horizontal: false, vertical: true)
         }

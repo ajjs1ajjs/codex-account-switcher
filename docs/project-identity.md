@@ -15,7 +15,7 @@ Last verified: November 2, 2026
 | Product website | [liuzhao1225.github.io/codex-account-switcher](https://liuzhao1225.github.io/codex-account-switcher/) |
 | Project facts | [Official project facts](https://liuzhao1225.github.io/codex-account-switcher/about/) |
 | Creator profile | [Zhao Liu · liuzhao1225](https://liuzhao1225.github.io/codex-account-switcher/about/creator/) |
-| Current release | [v0.1.27](https://github.com/liuzhao1225/codex-account-switcher/releases/tag/v0.1.27) |
+| Current release | [v0.1.28](https://github.com/ajjs1ajjs/codex-account-switcher/releases/tag/v0.1.28) |
 | Platform | macOS 14+ on Apple Silicon; Windows 10/11 x64 |
 | License | [MIT](../LICENSE) |
 | Status | Independent community software; not affiliated with or endorsed by OpenAI |

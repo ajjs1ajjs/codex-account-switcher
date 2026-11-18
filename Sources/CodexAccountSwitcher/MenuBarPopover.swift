@@ -52,7 +52,6 @@ struct MenuBarPopover: View {
         .frame(width: 400)
         .onAppear {
             page = model.isAddingAccount ? .manageAccounts : .accounts
-            Task { await tiboForecast.refreshIfDue() }
         }
         .task {
             await model.start()
@@ -101,9 +100,6 @@ struct MenuBarPopover: View {
                 // Ignore the initial zero-height probe and the previous page's height.
                 .fixedSize(horizontal: false, vertical: true)
             }
-
-            Divider()
-            TiboForecastEntry(model: model, forecastModel: tiboForecast)
 
             if let version = updater.availableVersion {
                 Divider()
